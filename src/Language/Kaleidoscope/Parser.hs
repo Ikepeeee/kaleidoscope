@@ -28,11 +28,38 @@ pFunc = do
 lexeme :: Parser a -> Parser a
 lexeme = L.lexeme sc
 
-pExpr :: Parser Expr
-pExpr = choice
-  [ pNumber
+parens :: Parser a -> Parser a
+parens = between (symbol "(") (symbol ")")
+
+pTerm :: Parser Expr
+pTerm = choice
+  [ parens pExpr
   , pVariable
+  , pNumber
   ]
+
+pExpr :: Parser Expr
+pExpr = makeExprParser pTerm operatorTable
+
+operatorTable :: [[Operator Parser Expr]]
+operatorTable =
+  [ [ prefix "-" Negation
+    , prefix "+" id
+    ]
+  , [ binary "*" Product
+    , binary "/" Division
+    ]
+  , [ binary "+" Sum
+    , binary "-" Sub
+    ]
+  ]
+
+binary :: Text -> (Expr -> Expr -> Expr) -> Operator Parser Expr
+binary  name f = InfixL  (f <$ symbol name)
+
+prefix, postfix :: Text -> (Expr -> Expr) -> Operator Parser Expr
+prefix  name f = Prefix  (f <$ symbol name)
+postfix name f = Postfix (f <$ symbol name)
 
 pType :: Parser Type
 pType = braces $ choice

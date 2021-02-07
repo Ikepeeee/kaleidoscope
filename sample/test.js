@@ -1,3 +1,2 @@
-const f = () => 0.5;
-const g = () => h();
-const h = () => 2.0;
+const f = () => 11.0;
+const g = () => (-10.0);
